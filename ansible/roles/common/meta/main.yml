@@ -1,0 +1,9 @@
+---
+dependencies:
+  - server
+  - apache
+  - mysql
+  - php
+  - xdebug
+  - composer
+  - varnish

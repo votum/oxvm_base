@@ -1,0 +1,64 @@
+---
+vagrant_local:
+  vm:
+    name: default
+    provider: virtualbox
+    base_box: ubuntu/trusty64
+    hostname: default.dev
+    aliases:
+      - www.default.dev
+    ip: 33.33.33.2
+    memory: '512'
+    cpus: 1
+    app_shared_folder:
+      source: ./
+      target: /var/www
+      sync_type: nfs
+      owner: vagrant
+      group: vagrant
+      permissions: u=rwX:g=rwX:o=rD
+    provider_specific:
+      parallels:
+        base_box: parallels/ubuntu-14.04
+      lxc:
+        base_box: oxid_esales/trusty64-lxc
+        ip: ~
+        app_shared_folder:
+          sync_type: ~
+docker: false
+server:
+  timezone: Europe/Berlin
+  locale: en_US.UTF-8
+  apt_mirror: http://us.archive.ubuntu.com/ubuntu/
+apache:
+  install: true
+  docroot: /vagrant
+  servername: myApp.vb
+  user: "{{ vagrant_local.vm.app_shared_folder.owner }}"
+  group: "{{ vagrant_local.vm.app_shared_folder.group }}"
+mysql:
+  install: true
+  root_password: '123'
+  database: db
+  user: user
+  password: password
+  dump: ''
+php:
+  install: true
+  packages: [php5-cli, php5-intl, php5-mcrypt, php5-mysql, php5-gd]
+  xdebug:
+    install: '1'
+  composer:
+    install: '1'
+    github_token: ~
+varnish:
+  install: false
+  repo:
+    source: 'deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0'
+    key: 'https://repo.varnish-cache.org/GPG-key.txt'
+    https: '1'
+  daemon_path: /usr/sbin/varnishd
+  package_name: varnish
+  default_config:
+    source: ~
+    target: /etc/varnish/default.vcl

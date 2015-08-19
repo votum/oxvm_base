@@ -1,0 +1,10 @@
+- name: Install Composer
+  sudo: yes
+  shell: curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer creates=/usr/local/bin/composer
+
+- name: Ensure composer configuration directory exists
+  file: path=~/.composer/ state=directory mode=0755
+
+- name: Place composer oauth configuration for github
+  template: src=auth.json dest=~/.composer/auth.json mode=0600
+  when: php.composer.github_token

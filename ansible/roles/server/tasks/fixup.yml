@@ -1,0 +1,19 @@
+---
+- name: Check swap
+  sudo: yes
+  shell: cat /proc/swaps | wc -l
+  when: not docker
+  changed_when: false
+  register: check_swap_cmd
+
+# Workaround for official virtualbox ubuntu image
+- name: Enable swap
+  sudo: yes
+  shell: "{{ item }}"
+  with_items:
+    - 'fallocate -l 8000M /swapfile'
+    - 'chmod 600 /swapfile'
+    - 'mkswap /swapfile'
+    - 'swapon /swapfile'
+    - 'echo "/swapfile none swap defaults 0 0" >> /etc/fstab'
+  when: not docker and check_swap_cmd.stdout == '1'

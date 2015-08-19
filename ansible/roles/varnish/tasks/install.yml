@@ -1,0 +1,67 @@
+---
+- name: Install https transport for apt
+  sudo: yes
+  apt: pkg=apt-transport-https state=latest
+  when: varnish.repo.https
+
+- name: Include Varnish repository key
+  sudo: yes
+  apt_key: "url=\"{{ varnish.repo.key }}\" state=present"
+
+- name: Include Varnish Repository
+  sudo: yes
+  apt_repository: "repo=\"{{ varnish.repo.source }}\" update_cache=yes state=present"
+
+- name: Install Varnish
+  sudo: yes
+  apt: pkg={{ varnish.package_name }} state=latest
+  register: varnish_install
+
+- name: Check if backup of default configuration is present
+  sudo: yes
+  stat: path={{ varnish.default_config.target }}.install_backup
+  register: install_backup_result
+  changed_when: false
+
+- name: Make install configuration backup
+  sudo: yes
+  local_copy: src={{ varnish.default_config.target }} dest={{ varnish.default_config.target }}.install_backup
+  when: not install_backup_result.stat.exists and varnish_install.changed
+
+- name: Get hash of existing Varnish default configuration
+  sudo: yes
+  stat: path={{ varnish.default_config.target }}
+  register: varnish_current_config_result
+
+- name: Restore installed configuration backup
+  sudo: yes
+  local_copy: src={{ varnish.default_config.target }}.install_backup dest={{ varnish.default_config.target }}
+  when: not varnish_current_config_result.stat.exists
+
+- name: Get hash of candidate Varnish default configuration
+  sudo: yes
+  stat: path={{ varnish.default_config.source }}
+  when: varnish.default_config.source
+  register: varnish_candidate_config_result
+
+- name: Trigger default Varnish configuration validation
+  sudo: yes
+  shell: /bin/true
+  when: >
+    not varnish_candidate_config_result|skipped
+    and (
+      not varnish_current_config_result.stat.exists
+      or
+      varnish_current_config_result.stat.md5 != varnish_candidate_config_result.stat.md5
+    )
+  notify: validate custom default varnish configuration
+  register: trigger_varnish_validate_config
+
+- name: Check Varnish service status
+  sudo: yes
+  shell: /etc/init.d/varnish status
+  when: not varnish_install|changed and not trigger_varnish_validate_config|changed
+  register: varnish_service_status
+  failed_when: false
+  changed_when: varnish_service_status.rc != 0
+  notify: validate existing default varnish configuration

@@ -1,0 +1,23 @@
+---
+- name: validate existing default varnish configuration
+  sudo: yes
+  shell: "{{ varnish.daemon_path }} -f {{ varnish.default_config.target }} -C -n /tmp"
+  register: varnish_existing_default_validation
+  changed_when: varnish_existing_default_validation.rc == 0
+  notify: restart varnish
+
+- name: validate custom default varnish configuration
+  sudo: yes
+  shell: "{{ varnish.daemon_path }} -f {{ varnish.default_config.source }} -C -n /tmp"
+  register: varnish_custom_default_validation
+  changed_when: varnish_custom_default_validation.rc == 0
+  notify: update custom default varnish configuration
+
+- name: update custom default varnish configuration
+  sudo: yes
+  local_copy: src={{ varnish.default_config.source }} dest={{ varnish.default_config.target }}
+  notify: restart varnish
+
+- name: restart varnish
+  sudo: yes
+  service: name=varnish enabled=yes state=restarted
