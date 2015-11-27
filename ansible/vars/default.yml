@@ -30,6 +30,7 @@ server:
   timezone: Europe/Berlin
   locale: en_US.UTF-8
   apt_mirror: http://us.archive.ubuntu.com/ubuntu/
+  unattended_upgrade: false
 apache:
   install: true
   docroot: /vagrant
