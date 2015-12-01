@@ -1,0 +1,6 @@
+---
+- include: install.yml
+  when: mailhog.install
+
+- include: uninstall.yml
+  when: not mailhog.install

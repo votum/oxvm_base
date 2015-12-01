@@ -1,0 +1,5 @@
+#!/bin/bash
+
+BODY=`cat /dev/stdin`
+
+echo "$BODY" | {{ mailhog.sendmail_dest }} --smtp-addr="localhost:{{ mailhog.smtp_port }}" nobody

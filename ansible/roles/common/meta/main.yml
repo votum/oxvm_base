@@ -4,6 +4,7 @@ dependencies:
   - apache
   - mysql
   - php
+  - mailhog
   - xdebug
   - composer
   - varnish

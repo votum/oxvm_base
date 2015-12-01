@@ -1,0 +1,34 @@
+---
+- name: Download fixed mailhog version
+  sudo: true
+  get_url:
+    url: "{{ mailhog.pkg_url }}"
+    dest: "{{ mailhog.pkg_dest }}"
+    sha256sum: "{{ mailhog.pkg_sha256 }}"
+    mode: 0755
+
+- name: Download fixed mhsendmail version
+  sudo: true
+  get_url:
+    url: "{{ mailhog.sendmail_url }}"
+    dest: "{{ mailhog.sendmail_dest }}"
+    sha256sum: "{{ mailhog.sendmail_sha256 }}"
+    mode: 0755
+
+- name: Add mailhog start script
+  sudo: yes
+  template: "src=mailhog_start.sh dest={{ mailhog.start_script }} mode=0755"
+  notify: Restart mailhog service
+
+- name: Add mailhog init script
+  sudo: yes
+  template: "src=mailhog_service dest={{ mailhog.service_script }} mode=0755"
+  notify: Restart mailhog service
+
+- name: Add shsendmail as sendmail
+  sudo: yes
+  template: "src=sendmail dest={{ mailhog.system_sendmail_path }} mode=0755"
+
+- name: Start service
+  sudo: yes
+  service: name=mailhog state=started

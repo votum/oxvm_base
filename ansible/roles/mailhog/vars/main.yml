@@ -1,0 +1,12 @@
+---
+mailhog:
+  start_script: "/opt/mailhog_start.sh"
+  pkg_dest: "/opt/MailHog_linux_amd64"
+  pkg_sha256: "678d736cc85e1fc9fa9451112b8b049db6f2ae22f2bcccf4de9a007aa91ff735"
+  sendmail_dest: "/opt/mhsendmail_linux_amd64"
+  sendmail_sha256: "6faa91406aad45b50e0d2120a5750c6bc8d1b2f958fe0098ebded314ccef3021"
+  system_sendmail_path: "/usr/sbin/sendmail"
+  service_script: "/etc/init.d/mailhog"
+  apache_modules:
+    - proxy
+    - proxy_http

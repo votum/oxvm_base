@@ -53,6 +53,13 @@ php:
   composer:
     install: '1'
     github_token: ~
+mailhog:
+  install: false
+  web_port: 8025
+  smtp_port: 1025
+  pkg_url: 'https://github.com/mailhog/MailHog/releases/download/v0.1.8/MailHog_linux_amd64'
+  sendmail_url: 'https://github.com/mailhog/mhsendmail/releases/download/v0.1.9/mhsendmail_linux_amd64'
+  web_alias: '/mail/'
 varnish:
   install: false
   repo:
