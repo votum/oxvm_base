@@ -1,0 +1,77 @@
+---
+- name: Install PHPBrew dependencies
+  sudo: yes
+  apt: pkg={{ item }} state=latest
+  with_items:
+    - curl
+    - re2c
+    - libxml2
+    - libfreetype6
+    - libpng12-0
+    - libjpeg8
+    - libgd3
+    - libxpm4
+    - libxslt1.1
+    - libltdl7
+    - openssl
+    - gettext
+    - libgettextpo0
+    - libmhash2
+    - libmcrypt4
+    - libbz2-1.0
+    - libreadline6
+    - libicu52
+    - php5-gd
+    - p7zip-full
+    - subversion
+  when: php.version is defined and php.version is not none
+
+- name: Check if PHPBrew is installed
+  stat: path=/usr/local/bin/phpbrew
+  register: phpbrew_service_check
+
+- name: Install PHPBrew
+  sudo: yes
+  shell: "{{ item }}"
+  with_items:
+    - wget -P /home/vagrant/ https://github.com/phpbrew/phpbrew/raw/master/phpbrew
+    - chmod +x /home/vagrant/phpbrew
+    - mv /home/vagrant/phpbrew /usr/local/bin/phpbrew
+  when: php.version is defined and php.version is not none and phpbrew_service_check.stat.exists == false
+
+- name: Initiate PHPBrew
+  shell: phpbrew init && echo "[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc" >> /home/vagrant/.bashrc
+  when: php.version is defined and php.version is not none and phpbrew_service_check.stat.exists == false
+
+- name: Checkout and extract compiled PHP versions
+  shell: svn export --force {{ php.cache_repository }} /home/vagrant/.phpbrew/php && ls /home/vagrant/.phpbrew/php/*.7z | xargs -i sh -c '7z x -so {} | tar xf - -C /home/vagrant/.phpbrew/php/'
+  when: php.version is defined and php.version is not none and php.cache_repository is not none and phpbrew_service_check.stat.exists == false
+
+- name: Add PHP switching scripts
+  sudo: yes
+  template: src={{ item }} dest=/usr/local/bin/{{ item }} mode=0755
+  with_items:
+    - phpversionformer
+    - phpswitch
+    - phpbuild
+  when: php.version is defined and php.version is not none
+
+  # Without alias bash session has to be restarted to change php version.
+- name: Create alias for phpswitching script
+  shell: echo "alias phpswitch='. phpswitch'" >> /home/vagrant/.bashrc
+  when: php.version is defined and php.version is not none and phpbrew_service_check.stat.exists == false
+
+- name: Check if required php version is already installed
+  shell: phpbrew list | grep `phpversionformer {{ php.version }}`
+  # grep will exit with 1 when no results found and this fails the task.
+  ignore_errors: yes
+  register: php_version_check
+  when: php.version is defined and php.version is not none
+
+- name: Build PHP version
+  shell: /usr/local/bin/phpbuild {{ php.version }}
+  when: php.version is defined and php.version is not none and php_version_check.stdout == ""
+
+- name: Switch to PHP version
+  shell: /usr/local/bin/phpswitch {{ php.version }}
+  when: php.version is defined and php.version is not none

@@ -1,0 +1,28 @@
+#!/bin/bash
+
+VERSION=`"phpversionformer" ${1}`
+
+if [[ -z "$VERSION" || $VERSION == "-h" ]] ; then
+    echo "Usage: source phpswitch [version|off]"
+    echo "If run without 'source' keyword, php version will not be switched in CLI."
+    echo "In that case run 'source ~/.bashrc' to set correct PHP version in CLI."
+    echo "It can also turn on default PHP version by passing 'off' instead of version."
+    echo ""
+    exit 1;
+fi
+
+[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc
+
+if [[ $VERSION == "off" ]] ; then
+    phpbrew off
+    MODULE_PATH="/usr/lib/apache2/modules/libphp5.so"
+    MAJOR_VERSION="5"
+else
+    phpbrew switch ${VERSION}
+    MAJOR_VERSION=$(echo $VERSION | sed 's/\([0-9]*\).*/\1/')
+    MODULE_PATH="/home/vagrant/.phpbrew/php/php-${VERSION}/libphp${VERSION}.so"
+fi
+
+sudo cp /etc/apache2/mods-available/php5.load /etc/apache2/mods-available/php5.load.backup
+echo "LoadModule php${MAJOR_VERSION}_module ${MODULE_PATH}" | sudo tee /etc/apache2/mods-available/php5.load >> /dev/null
+sudo service apache2 restart

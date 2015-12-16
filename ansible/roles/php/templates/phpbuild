@@ -1,0 +1,84 @@
+#!/bin/bash
+
+VERSION=`"phpversionformer" ${1}`
+PACKAGEPATH=$2
+
+if [[ -z "$VERSION" || $VERSION == "-h" ]] ; then
+    echo "Usage: phpbuild [version] [package_path]"
+    echo "To get a list of all available versions use 'phpbrew known' command."
+    echo "If not package path is given, package will not be generated."
+    echo ""
+    exit 1;
+fi
+
+MAIN_VERSION=$(echo $VERSION | sed 's/\([0-9]*\.[0-9]*\).*/\1/')
+XDEBUG_VERSION="stable"
+
+declare -A PHP_OPTIONS
+PHP_OPTIONS["max_execution_time"]="3600"
+PHP_OPTIONS["memory_limit"]="2048M"
+PHP_OPTIONS["error_reporting"]="E_ALL & ~E_DEPRECATED & ~E_STRICT"
+PHP_OPTIONS["date.timezone"]="{{ server.timezone }}"
+PHP_OPTIONS["opcache.enable"]="1"
+
+if [[ ${MAIN_VERSION} == "5.3" ]]; then
+    XDEBUG_VERSION="2.7.7"
+    sudo mkdir /usr/include/freetype2/freetype
+    sudo ln -s /usr/include/freetype2/* /usr/include/freetype2/freetype/
+fi
+
+[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc
+
+# Install additional dependencies
+sudo apt-get install -y autoconf automake build-essential ccache
+sudo apt-get install -y apache2-dev libmcrypt-dev libltdl-dev libssl-dev libgd-dev libbz2-dev libreadline-dev libcurl3-openssl-dev libxslt1-dev libicu-dev
+sudo chmod -R oga+rw /usr/lib/apache2/modules
+sudo chmod -R oga+rw /etc/apache2
+sudo chmod -R oga+rw /var/lib/apache2/module/enabled_by_admin/
+
+# Install new PHP version
+OPTIONS="+default+apxs2+mysql+intl+iconv"
+if [[ ${MAIN_VERSION} == "7.0" ]]; then
+    OPTIONS="${OPTIONS}+gd"
+    XDEBUG_VERSION="latest"
+fi
+phpbrew install ${VERSION} ${OPTIONS} -- --with-mysql-sock=/var/run/mysqld/mysqld.sock
+
+if [[ ${MAIN_VERSION} == "7.0" ]]; then
+    rm /etc/apache2/mods-enabled/php7.load
+fi
+
+# Switch to installed version
+phpbrew switch ${VERSION}
+
+# Add extensions
+phpbrew ext install xdebug ${XDEBUG_VERSION}
+if [[ ${MAIN_VERSION} > "5.4" ]]; then
+    phpbrew ext install opcache
+fi
+
+if [[ ${MAIN_VERSION} != "7.0" ]]; then
+    phpbrew ext install gd -- \
+     --enable-gd-native-ttf \
+     --with-gd=shared \
+     --with-freetype-dir=/usr/include/freetype2 \
+     --with-jpeg-dir=/usr \
+     --with-libdir=lib/x86_64-linux-gnu \
+     --with-png-dir=/usr \
+     --with-vpx-dir=/usr \
+     --with-xpm-dir=/usr
+fi
+
+# Modify PHP options
+for i in "${!PHP_OPTIONS[@]}"
+do
+  sudo sed -e "/^[^;]*$i/s/=.*$/= $(echo ${PHP_OPTIONS[$i]} | sed -e 's/[\/&]/\\&/g')/" -i /home/vagrant/.phpbrew/php/php-${VERSION}/etc/php.ini
+done
+
+# Copy apache module to PHP directory
+cp /usr/lib/apache2/modules/libphp${VERSION}.so /home/vagrant/.phpbrew/php/php-${VERSION}/
+
+if [[ ! -z "$PACKAGEPATH" ]] ; then
+    # Create new package
+    tar cf - --directory=/home/vagrant/.phpbrew/php php-${VERSION} | 7z a -si ${PACKAGEPATH}/php-${VERSION}.tar.7z
+fi
