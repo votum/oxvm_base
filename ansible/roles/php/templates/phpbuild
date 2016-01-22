@@ -37,7 +37,7 @@ sudo chmod -R oga+rw /etc/apache2
 sudo chmod -R oga+rw /var/lib/apache2/module/enabled_by_admin/
 
 # Install new PHP version
-OPTIONS="+default+apxs2+mysql+intl+iconv"
+OPTIONS="+default+apxs2+mysql+intl+iconv+soap"
 if [[ ${MAIN_VERSION} == "7.0" ]]; then
     OPTIONS="${OPTIONS}+gd"
     XDEBUG_VERSION="latest"
