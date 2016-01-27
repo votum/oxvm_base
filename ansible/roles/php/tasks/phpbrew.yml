@@ -75,3 +75,7 @@
 - name: Switch to PHP version
   shell: /usr/local/bin/phpswitch {{ php.version }}
   when: php.version
+
+- name: Turn off phpbrew
+  shell: /usr/local/bin/phpswitch off
+  when: not php.version and phpbrew_service_check.stat.exists

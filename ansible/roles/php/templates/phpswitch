@@ -14,7 +14,7 @@ fi
 [[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc
 
 if [[ $VERSION == "off" ]] ; then
-    phpbrew off
+    phpbrew switch-off
     MODULE_PATH="/usr/lib/apache2/modules/libphp5.so"
     MAJOR_VERSION="5"
 else
