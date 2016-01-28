@@ -8,3 +8,15 @@
 - name: Place composer oauth configuration for github
   template: src=auth.json dest=~/.composer/auth.json mode=0600
   when: php.composer.github_token
+
+- name: Install prestissimo
+  shell: composer global require hirak/prestissimo
+  when: php.composer.prestissimo.install
+
+- name: Check for global composer.json
+  stat: path=~/.composer/composer.json
+  register: global_composer_json
+
+- name: Uninstall prestissimo
+  shell: composer global remove hirak/prestissimo
+  when: not php.composer.prestissimo.install and global_composer_json.stat.exists
