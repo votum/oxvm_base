@@ -1,4 +1,4 @@
 ---
 - name: Restart mailhog service
-  sudo: yes
+  become: yes
   service: name=mailhog state=restarted

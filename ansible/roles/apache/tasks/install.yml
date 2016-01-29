@@ -1,10 +1,10 @@
 ---
 - name: Install Apache
-  sudo: yes
+  become: yes
   apt: pkg=apache2 state=latest
 
 - name: Install Apache Modules
-  sudo: yes
+  become: yes
   apache2_module: state=present name={{ item }}
   notify: restart apache
   with_items:
@@ -15,14 +15,14 @@
     - filter
 
 - name: Uninstall Apache Modules for mailhog
-  sudo: yes
+  become: yes
   apache2_module: state=absent name={{ item }}
   when: not mailhog.install
   notify: restart apache
   with_items: mailhog.apache_modules|reverse|list
 
 - name: Install Apache Modules for mailhog
-  sudo: yes
+  become: yes
   apache2_module: state=present name={{ item }}
   when: mailhog.install
   notify: restart apache
@@ -32,23 +32,23 @@
   register: apache_version
 
 - name: Change default apache2.4 site
-  sudo: yes
+  become: yes
   template: src=vhost24.conf.tpl dest=/etc/apache2/sites-available/000-default.conf
   notify: restart apache
   when: apache_version.stdout.find('Apache/2.4.') != -1
 
 - name: Change default apache2.2 site
-  sudo: yes
+  become: yes
   template: src=vhost22.conf.tpl dest=/etc/apache2/sites-available/default
   notify: restart apache
   when: apache_version.stdout.find('Apache/2.2.') != -1
 
 - name: Change user of apache service
-  sudo: yes
+  become: yes
   lineinfile: "dest=/etc/apache2/envvars regexp=\"APACHE_RUN_USER\" line=\"export APACHE_RUN_USER={{ apache.user }}\" owner=root group=root mode=0644"
   notify: restart apache
 
 - name: Change group of apache service
-  sudo: yes
+  become: yes
   lineinfile: "dest=/etc/apache2/envvars regexp=\"APACHE_RUN_GROUP\" line=\"export APACHE_RUN_GROUP={{ apache.group }}\" owner=root group=root mode=0644"
   notify: restart apache

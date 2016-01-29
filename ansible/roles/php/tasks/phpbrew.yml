@@ -1,6 +1,6 @@
 ---
 - name: Install PHPBrew dependencies
-  sudo: yes
+  become: yes
   apt: pkg={{ item }} state=latest
   with_items:
     - curl
@@ -31,7 +31,7 @@
   register: phpbrew_service_check
 
 - name: Install PHPBrew
-  sudo: yes
+  become: yes
   shell: "{{ item }}"
   with_items:
     - wget -P /home/vagrant/ https://github.com/phpbrew/phpbrew/raw/master/phpbrew
@@ -48,7 +48,7 @@
   when: php.version and php.cache_repository and not phpbrew_service_check.stat.exists
 
 - name: Add PHP switching scripts
-  sudo: yes
+  become: yes
   template: src={{ item }} dest=/usr/local/bin/{{ item }} mode=0755
   with_items:
     - phpversionformer

@@ -4,12 +4,12 @@
   register: mailhog_service_check
 
 - name: Stop service
-  sudo: yes
+  become: yes
   service: name=mailhog state=stopped
   when: mailhog_service_check.stat.exists
 
 - name: Remove mailhog files
-  sudo: true
+  become: true
   file: path={{ item }} state=absent
   with_items:
     - "{{ mailhog.pkg_dest }}"

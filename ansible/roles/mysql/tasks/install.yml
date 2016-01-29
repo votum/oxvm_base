@@ -4,7 +4,7 @@
   register: current_hostname
 
 - name: Install MySQL Packages
-  sudo: yes
+  become: yes
   apt: pkg={{ item }} state=latest
   with_items:
     - mysql-server
@@ -12,7 +12,7 @@
     - python-mysqldb
 
 - name: Ensure MySQL service running
-  sudo: yes
+  become: yes
   service: name=mysql state=started enabled=yes
 
 - name: Update root password for all root accounts
