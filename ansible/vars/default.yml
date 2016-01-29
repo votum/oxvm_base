@@ -53,6 +53,7 @@ php:
     install: '1'
     host: ~
   composer:
+    installer_url: https://getcomposer.org/installer
     install: '1'
     github_token: ~
     prestissimo:
