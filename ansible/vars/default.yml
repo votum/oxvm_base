@@ -31,6 +31,8 @@ server:
   locale: en_US.UTF-8
   apt_mirror: http://us.archive.ubuntu.com/ubuntu/
   unattended_upgrade: false
+  packages: ~
+  personal_packages: ~
 apache:
   install: true
   docroot: /vagrant

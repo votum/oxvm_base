@@ -34,13 +34,13 @@
   become: yes
   apt: pkg={{ item }} state=latest
   with_items: server.packages
-  when: server.packages is defined
+  when: server.packages
 
 - name: Install Extra personal Packages
   become: yes
   apt: pkg={{ item }} state=latest
   with_items: server.personal_packages
-  when: server.personal_packages is defined
+  when: server.personal_packages
 
 - name: Configure the timezone
   become: yes
