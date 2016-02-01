@@ -1,4 +1,4 @@
 ---
 - name: restart php5-fpm
-  sudo: yes
+  become: yes
   service: name=php5-fpm enabled=yes state=restarted

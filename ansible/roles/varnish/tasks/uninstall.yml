@@ -1,14 +1,14 @@
 ---
 - name: Remove Varnish Repository
-  sudo: yes
+  become: yes
   apt_repository: repo='deb https://repo.varnish-cache.org/ubuntu/ trusty varnish-4.0' state=absent
 
 - name: Uninstall varnish
-  sudo: yes
+  become: yes
   apt: pkg=varnish state=absent
   register: uninstall_varnish
 
 - name: Restore old install configuration
-  sudo: yes
+  become: yes
   local_copy: src=/etc/varnish/default.vcl.install_backup dest=/etc/varnish/default.vcl
   when: uninstall_varnish.changed

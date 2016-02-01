@@ -122,7 +122,7 @@ Vagrant.configure("2") do |config|
   config.ssh.forward_agent = true
   config.ssh.shell = "bash -c 'BASH_ENV=/etc/profile exec bash'"
 
-  if which('ansible-playbook') && Gem::Version.new(get_ansible_version()) >= Gem::Version.new('1.9.1')
+  if which('ansible-playbook') && Gem::Version.new(get_ansible_version()) >= Gem::Version.new('2.0.0')
     config.vm.provision "ansible" do |ansible|
       ansible.playbook = "#{vm_path}/ansible/#{playbook_name}.yml"
     end

@@ -31,6 +31,8 @@ server:
   locale: en_US.UTF-8
   apt_mirror: http://us.archive.ubuntu.com/ubuntu/
   unattended_upgrade: false
+  packages: ~
+  personal_packages: ~
 apache:
   install: true
   docroot: /vagrant
@@ -48,15 +50,22 @@ php:
   install: true
   packages: [php5-cli, php5-intl, php5-mcrypt, php5-mysql, php5-gd, php5-curl]
   version: ~
-  cache_repository: 'https://github.com/OXID-eSales/oxvm_assets/branches/php_switching_support/php_versions'
+  phpbrew:
+    cache:
+      repo: 'https://github.com/OXID-eSales/oxvm_assets'
+      ref: 'phpbrew_builds'
+      depth: 1
+      update: true
   xdebug:
     install: '1'
     host: ~
   composer:
+    installer_url: https://getcomposer.org/installer
     install: '1'
     github_token: ~
     prestissimo:
       install: false
+  pecl_packages: ~
 mailhog:
   install: false
   web_port: 8025

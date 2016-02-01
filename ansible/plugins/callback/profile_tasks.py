@@ -1,13 +1,14 @@
 import datetime
 import os
 import time
+from ansible.plugins.callback import CallbackBase
 
-
-class CallbackModule(object):
+class CallbackModule(CallbackBase):
   """
   A plugin for timing tasks
   """
   def __init__(self):
+    super(CallbackModule, self).__init__()
     self.stats = {}
     self.current = None
 
@@ -49,17 +50,20 @@ class CallbackModule(object):
     # Just keep the top 10
     results = results[:10]
 
+    # Empty line to separate provision text from profiler
+    print('\n{0:*<80}'.format('PLAY PROFILE DATA: '))
+
     # Print the timings
     for name, elapsed in results:
       print(
-        "{0:-<70}{1:->9}".format(
-          '{0} '.format(name),
+        "[{1: >7}] {0:-<70}".format(
+          '{0} '.format(str(name).replace('TASK: ', '').replace(' : ', ': ')),
           ' {0:.02f}s'.format(elapsed),
         )
       )
 
     total_seconds = sum([x[1] for x in self.stats.items()])
-    print("\nPlaybook finished: {0}, {1} total tasks.  {2} elapsed. \n".format(
+    print("\nPlaybook finished: {0}, {1} total tasks. {2} elapsed.".format(
         time.asctime(),
         len(self.stats.items()),
         datetime.timedelta(seconds=(int(total_seconds)))

@@ -1,6 +1,6 @@
 ---
 - name: Install PHPBrew dependencies
-  sudo: yes
+  become: yes
   apt: pkg={{ item }} state=latest
   with_items:
     - curl
@@ -23,15 +23,18 @@
     - libicu52
     - php5-gd
     - p7zip-full
-    - subversion
   when: php.version
+
+- name: Install PHPBrew pre-built packages dependencies
+  become: yes
+  apt: pkg=git state=latest
 
 - name: Check if PHPBrew is installed
   stat: path=/usr/local/bin/phpbrew
   register: phpbrew_service_check
 
 - name: Install PHPBrew
-  sudo: yes
+  become: yes
   shell: "{{ item }}"
   with_items:
     - wget -P /home/vagrant/ https://github.com/phpbrew/phpbrew/raw/master/phpbrew
@@ -43,12 +46,31 @@
   shell: phpbrew init && echo "[[ -e ~/.phpbrew/bashrc ]] && source ~/.phpbrew/bashrc" >> /home/vagrant/.bashrc
   when: php.version and not phpbrew_service_check.stat.exists
 
-- name: Checkout and extract compiled PHP versions
-  shell: svn export --force {{ php.cache_repository }} /home/vagrant/.phpbrew/php && ls /home/vagrant/.phpbrew/php/*.7z | xargs -i sh -c '7z x -so {} | tar xf - -C /home/vagrant/.phpbrew/php/'
-  when: php.version and php.cache_repository and not phpbrew_service_check.stat.exists
+- name: Clone out PHPBrew builds
+  git:
+    repo: "{{ php.phpbrew.cache.repo }}"
+    depth: "{{ php.phpbrew.cache.depth }}"
+    version: "{{ php.phpbrew.cache.ref }}"
+    force: true
+    dest: /home/vagrant/.phpbrew/php_build_archives
+    update: "{{ php.phpbrew.cache['update'] }}"
+  register: phpbrew_clone_builds
+  when: php.version and php.phpbrew.cache.repo
+
+- name: Create extracted directory
+  file: path=/home/vagrant/.phpbrew/php_build_extracted state=directory
+  when: php.version and php.phpbrew.cache.repo
+
+- name: Extract PHPBrew builds
+  shell: ls /home/vagrant/.phpbrew/php_build_archives/*.7z | xargs -i sh -c '7z x -so {} | tar xf - -C /home/vagrant/.phpbrew/php_build_extracted/'
+  when: php.version and php.phpbrew.cache.repo and phpbrew_clone_builds.changed
+
+- name: Sync extracted builds
+  shell: rsync -r -a /home/vagrant/.phpbrew/php_build_extracted/ /home/vagrant/.phpbrew/php warn=no
+  when: php.version and php.phpbrew.cache.repo
 
 - name: Add PHP switching scripts
-  sudo: yes
+  become: yes
   template: src={{ item }} dest=/usr/local/bin/{{ item }} mode=0755
   with_items:
     - phpversionformer
@@ -76,6 +98,6 @@
   shell: /usr/local/bin/phpswitch {{ php.version }}
   when: php.version
 
-- name: Turn off phpbrew
+- name: Turn off PHPBrew
   shell: /usr/local/bin/phpswitch off
   when: not php.version and phpbrew_service_check.stat.exists
