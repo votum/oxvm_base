@@ -14,7 +14,7 @@
   when: php.composer.github_token
 
 - name: Install prestissimo
-  shell: composer global require hirak/prestissimo
+  shell: "composer global require hirak/prestissimo '0.1.8'"
   when: php.composer.prestissimo.install
 
 - name: Check for global composer.json
