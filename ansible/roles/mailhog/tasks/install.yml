@@ -31,4 +31,4 @@
 
 - name: Start service
   become: yes
-  service: name=mailhog state=started
+  service: name=mailhog enabled=yes state=started
