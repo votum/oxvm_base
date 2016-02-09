@@ -6,5 +6,6 @@ dependencies:
   - php
   - mailhog
   - xdebug
+  - zendguard  
   - composer
   - varnish

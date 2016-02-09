@@ -1,0 +1,31 @@
+---
+- stat: path=/usr/lib/php5/20121212/zend-loader-php5.5-linux-x86_64.tar.gz
+  register: zendGuardArchive
+
+- name: Download the ZendGuard shared object files
+  become: yes
+  get_url: url="https://github.com/OXID-eSales/oxvm_assets/blob/master/zend-loader-php5.5-linux-x86_64.tar.gz?raw=true" dest="/usr/lib/php5/20121212/"
+  when: zendGuardArchive.stat.exists == False
+
+- unarchive: src=/usr/lib/php5/20121212/zend-loader-php5.5-linux-x86_64.tar.gz dest=/usr/lib/php5/20121212/
+  become: yes
+
+- copy: src=/usr/lib/php5/20121212/zend-loader-php5.5-linux-x86_64/ZendGuardLoader.so dest=/usr/lib/php5/20121212/ZendGuardLoader.so
+  become: yes
+
+- copy: src=/usr/lib/php5/20121212/zend-loader-php5.5-linux-x86_64/opcache.so dest=/usr/lib/php5/20121212/zend_opcache.so
+  become: yes
+
+- name: Place ZendGuard configuration
+  become: yes
+  template: src=zend.ini dest=/etc/php5/mods-available/zend.ini
+
+- name: Disable standard PHP5 opcache
+  become: yes
+  command: php5dismod opcache
+  notify: restart apache
+
+- name: Enable ZendGuard opcache
+  become: yes
+  command: php5enmod zend
+  notify: restart apache
