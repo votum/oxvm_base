@@ -14,6 +14,14 @@
   lineinfile: "dest=/etc/hosts regexp=\"^127\\.0\\.0\\.1\" line=\"127.0.0.1 localhost {{ vagrant_local.vm.hostname }}\" owner=root group=root mode=0644"
   when: not docker
 
+- name: Disable ndots
+  become: yes
+  lineinfile:
+    dest=/etc/resolvconf/resolv.conf.d/head
+    regexp="^domain"
+    line="domain ."
+  notify: Update resolver
+
 - name: Configure Apt source mirror
   become: yes
   template: src=sources.tpl dest=/etc/apt/sources.list
