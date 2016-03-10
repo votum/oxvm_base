@@ -24,3 +24,10 @@
 - include: configure.yml
 - include: pecl.yml
 - include: phpbrew.yml
+- include: set_facts.yml
+
+- include: zendguardloader.yml
+  when: php.install_zendguardloader is defined and php.install_zendguardloader
+
+- include: ioncubeloader.yml
+  when: php.install_ioncubeloader is defined and php.install_ioncubeloader

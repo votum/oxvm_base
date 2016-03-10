@@ -1,0 +1,19 @@
+
+- name: determine PHP extension folder
+  become: yes
+  shell: 'find /home/{{ vagrant_local.vm.app_shared_folder.owner }}/.phpbrew/ -type d -wholename "*/php/php-{{ php.version }}*/lib/php/extensions/*"'
+  register: php_extension_dir
+  failed_when: "php_extension_dir.stdout == 'xx'"
+  ignore_errors: true
+
+- name: determine PHP extension config folder
+  become: yes
+  shell: 'find /home/{{ vagrant_local.vm.app_shared_folder.owner }}/.phpbrew/ -type d -name "db" -wholename "*/php/php-{{ php.version }}*/var/*"'
+  register: php_extension_config_dir
+  failed_when: "php_extension_config_dir.stdout == 'xx'"
+  ignore_errors: true
+
+- name: set facts for phpbrew installation
+  set_fact: >
+    php_extension_dir="{{ php_extension_dir.stdout }}"
+    php_extension_config_dir="{{ php_extension_config_dir.stdout }}"

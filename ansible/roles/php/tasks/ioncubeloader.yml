@@ -1,0 +1,51 @@
+- name: ion-cube-loader | set facts
+  set_fact: >
+    ioncube_tarfile="ioncube_loaders.tar.gz"
+    ioncube_file="ioncube_loader_lin_{{ php.version }}.so"
+
+- name: ion-cube-loader | check for installed module
+  stat: path="{{ php_extension_dir }}/{{ ioncube_file }}"
+  register: ioncube_loader_module
+
+# TODO check for conflicting modules
+#- name: ion-cube-loader | check for conflicting modules (like ...)
+
+- name: ion-cube-loader | download ion-cube-loader 64bit tar archive
+  get_url: >
+    url=http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz
+    dest=/tmp/{{ ioncube_tarfile }}
+  when: not ioncube_loader_module.stat.exists and ansible_os_family == 'Debian' and ansible_machine == 'x86_64'
+
+- name: ion-cube-loader | download ion-cube-loader 32bit tar archive
+  get_url: >
+    url=http://downloads3.ioncube.com/loader_downloads/ioncube_loaders_lin_x86.tar.gz
+    dest=/tmp/{{ ioncube_tarfile }}
+  when: not ioncube_loader_module.stat.exists and ansible_os_family == 'Debian' and ansible_machine == 'i686'
+
+- name: ion-cube-loader | unpack tar archive
+  unarchive: >
+    src=/tmp/{{ ioncube_tarfile }}
+    dest=/tmp/
+    copy=no
+  when: not ioncube_loader_module.stat.exists
+
+- name: ion-cube-loader | install appropriate .so module
+  command: >
+    mv "/tmp/ioncube/{{ ioncube_file }}" "{{ php_extension_dir }}/{{ ioncube_file }}"
+    chdir=/tmp/
+  when: not ioncube_loader_module.stat.exists
+
+- name: ion-cube-loader | add configuration
+  template: >
+    src=ioncube.ini.j2
+    dest={{ php_extension_config_dir }}/ioncube.ini
+    force=no
+  notify: restart apache
+
+- name: ion-cube-loader | enable module
+  become: yes
+  shell: >
+    chdir=/etc/php5/mods-available
+    php5enmod ioncube
+  when: php.version != '5.3'
+  notify: restart apache

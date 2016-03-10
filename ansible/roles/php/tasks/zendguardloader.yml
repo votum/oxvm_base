@@ -1,0 +1,69 @@
+- name: zend-guard-loader | set facts
+  set_fact: >
+    zendguard_tarfile="zend-guard-loader.tar.gz"
+    zendguard_file="ZendGuardLoader.so"
+
+- name: zend-guard-loader | check for installed module
+  stat: path="{{ php_extension_dir }}/{{ zendguard_file }}"
+  register: zendguard_module
+
+- debug: var=php_extension_dir
+- debug: var=zendguard_file
+- debug: var=zendguard_module
+
+# TODO check for conflicting modules
+#- name: zend-guard-loader | check for conflicting modules (like ...)
+
+- name: zend-guard-loader | download Zend Guard Loader tar archive for PHP 5.6
+  get_url: >
+    url=http://downloads.zend.com/guard/7.0.0/zend-loader-php5.6-linux-x86_64.tar.gz
+    dest=/tmp/{{ zendguard_tarfile }}
+  when: not zendguard_module.stat.exists and ansible_os_family == 'Debian' and php.version == '5.6'
+
+- name: zend-guard-loader | download Zend Guard Loader tar archive for PHP 5.5
+  get_url: >
+    url=http://downloads.zend.com/guard/7.0.0/zend-loader-php5.5-linux-x86_64.tar.gz
+    dest=/tmp/{{ zendguard_tarfile }}
+  when: not zendguard_module.stat.exists and ansible_os_family == 'Debian' and php.version == '5.5'
+
+- name: zend-guard-loader | download Zend Guard Loader tar archive for PHP 5.4
+  get_url: >
+    url=http://downloads.zend.com/guard/6.0.0/ZendGuardLoader-70429-PHP-5.4-linux-glibc23-x86_64.tar.gz
+    dest=/tmp/{{ zendguard_tarfile }}
+  when: not zendguard_module.stat.exists and ansible_os_family == 'Debian' and php.version == '5.4'
+
+- name: zend-guard-loader | download Zend Guard Loader tar archive for PHP 5.3
+  get_url: >
+    url=http://downloads.zend.com/guard/5.5.0/ZendGuardLoader-php-5.3-linux-glibc23-x86_64.tar.gz
+    dest=/tmp/{{ zendguard_tarfile }}
+  when: not zendguard_module.stat.exists and ansible_os_family == 'Debian' and php.version == '5.3'
+
+- name: zend-guard-loader | unpack tar archive
+  unarchive: >
+    src=/tmp/{{ zendguard_tarfile }}
+    dest=/tmp/
+    copy=no
+  when: not zendguard_module.stat.exists
+
+- name: zend-guard-loader | install module
+  become: yes
+  command: >
+    find -type f -name "{{ zendguard_file }}" -exec mv {} "{{ php_extension_dir }}/." \;
+    chdir=/tmp/
+  when: not zendguard_module.stat.exists
+
+- name: zend-guard-loader | add configuration
+  become: yes
+  template: >
+    src=zendguard.ini.j2
+    dest={{ php_extension_config_dir }}/zendguard.ini
+    force=no
+  notify: restart apache
+
+- name: zend-guard-loader | enable module
+  become: yes
+  shell: >
+    chdir=/etc/php5/mods-available
+    php5enmod zendguard
+  when: php.version != '5.3'
+  notify: restart apache
