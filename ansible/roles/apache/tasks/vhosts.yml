@@ -1,0 +1,22 @@
+- name: apache | add vhosts
+  become: yes
+  template:
+    src='{{ vhost_template }}'
+    dest=/etc/apache2/sites-available/{{ item.servername }}.conf
+  with_items: apache.vhosts
+  notify: restart apache
+
+- name: apache | enable vhosts
+  become: yes
+  command: >
+    a2ensite {{ item.servername }}
+  with_items: apache.vhosts
+  notify: restart apache
+
+- name: apache | disable default vhost(s)
+  become: yes
+  command: a2dissite {{ item }}
+  with_items:
+    - '000-default.conf'
+  notify: restart apache
+  ignore_errors: true

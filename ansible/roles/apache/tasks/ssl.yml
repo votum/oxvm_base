@@ -1,0 +1,27 @@
+- name: apache | enable ssl module
+  become: yes
+  apache2_module:
+    state: present
+    name: ssl
+  register: apache_enable_ssl
+  notify: restart apache
+
+- name: apache | check ssl if module is enabled
+  command: >
+    apachectl -M
+  register: apache_result
+  ignore_errors: true
+
+- name: apache | verify ssl directory
+  become: yes
+  file: >
+    path=/etc/apache2/ssl
+    state=directory
+  when: "'ssl_module' in apache_result.stdout or apache_enable_ssl.changed"
+
+- name: apache | create self-signed SSL cert
+  become: yes
+  command: >
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 -subj "/C=US/ST=Oregon/L=Portland/O=IT/CN={{ ansible_fqdn }}" -keyout /etc/apache2/ssl/server.key -extensions v3_ca -out /etc/apache2/ssl/server.crt
+  notify: restart apache
+  when: "'ssl_module' in apache_result.stdout or apache_enable_ssl.changed"

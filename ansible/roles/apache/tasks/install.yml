@@ -28,20 +28,17 @@
   notify: restart apache
   with_items: mailhog.apache_modules
 
+- include: ssl.yml
+#  when: apache.vhosts is defined
+
 - shell: apache2 -v
   register: apache_version
 
-- name: Change default apache2.4 site
-  become: yes
-  template: src=vhost24.conf.tpl dest=/etc/apache2/sites-available/000-default.conf
-  notify: restart apache
-  when: apache_version.stdout.find('Apache/2.4.') != -1
+- include: vhosts.yml vhost_template=vhost24.conf.tpl.j2
+  when: apache.vhosts is defined and apache_version.stdout.find('Apache/2.4.') != -1
 
-- name: Change default apache2.2 site
-  become: yes
-  template: src=vhost22.conf.tpl dest=/etc/apache2/sites-available/default
-  notify: restart apache
-  when: apache_version.stdout.find('Apache/2.2.') != -1
+- include: vhosts.yml vhost_template=vhost22.conf.tpl.j2
+  when: apache.vhosts is defined and apache_version.stdout.find('Apache/2.2.') != -1
 
 - name: Change user of apache service
   become: yes
