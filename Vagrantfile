@@ -77,6 +77,7 @@ Vagrant.configure("2") do |config|
   if Vagrant.has_plugin?('vagrant-hostmanager')
     config.hostmanager.enabled = true
     config.hostmanager.manage_host = true
+    config.hostmanager.manage_guest = true
     config.hostmanager.ignore_private_ip = false
     config.hostmanager.include_offline = false
     config.hostmanager.aliases = vm_config["aliases"]
@@ -132,4 +133,9 @@ Vagrant.configure("2") do |config|
       path: "#{base_vm_path}/ansible/provision.sh",
       args: [playbook_name]
   end
+
+  vm_config["aliases"].each do |host|
+    config.vm.provision "shell", path: "oxideshop/etc/add-hosts-to-guest.sh", args: host
+  end
+
 end
