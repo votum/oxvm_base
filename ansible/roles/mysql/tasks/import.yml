@@ -12,8 +12,6 @@
   with_items: '{{ mysql.dump }}'
   ignore_errors: True
 
-- debug: var=mysql_tables_exist
-
 - name: Import dumps
   mysql_db:
     name: '{{ item.0.db }}'
