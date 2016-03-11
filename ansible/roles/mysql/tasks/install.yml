@@ -24,16 +24,13 @@
     - localhost
 
 - name: Create databases
-  mysql_db: name={{ mysql.database }} state=present login_user=root login_password={{ mysql.root_password }}
-
-- name: Import dumps
   mysql_db:
-    name: '{{ item.db }}'
-    state: import
+    name: '{{ mysql.database }}'
+    state: present
     login_user: root
     login_password: '{{ mysql.root_password }}'
-    target: '/vagrant/{{ item.file }}'
-  with_items: mysql.dump
+
+- include: import.yml
   when: mysql.dump is defined and mysql.dump
 
 - name: Ensure anonymous users are not in the database

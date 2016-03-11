@@ -1,0 +1,27 @@
+- name: create mysql databases
+  mysql_db:
+    name: '{{ item.db }}'
+    state: present
+    login_user: root
+    login_password: '{{ mysql.root_password }}'
+  with_items: '{{ mysql.dump }}'
+
+- name: check for existing tables
+  shell: mysql -u root -p{{ mysql.root_password }} -e "show tables from {{ item.db }}"
+  register: mysql_tables_exist
+  with_items: '{{ mysql.dump }}'
+  ignore_errors: True
+
+- debug: var=mysql_tables_exist
+
+- name: Import dumps
+  mysql_db:
+    name: '{{ item.0.db }}'
+    state: import
+    login_user: root
+    login_password: '{{ mysql.root_password }}'
+    target: '/vagrant/{{ item.0.file }}'
+  with_together:
+    - '{{ mysql.dump }}'
+    - '{{ mysql_tables_exist.results }}'
+  when: item.1.rc == 0 and item.1.stdout == ""
