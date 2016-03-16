@@ -7,10 +7,6 @@
   stat: path="{{ php_extension_dir }}/{{ zendguard_file }}"
   register: zendguard_module
 
-- debug: var=php_extension_dir
-- debug: var=zendguard_file
-- debug: var=zendguard_module
-
 # TODO check for conflicting modules
 #- name: zend-guard-loader | check for conflicting modules (like ...)
 
