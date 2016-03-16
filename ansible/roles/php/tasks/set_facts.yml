@@ -1,4 +1,11 @@
 
+- name: set PHP binary
+  become: yes
+  shell: 'find /home/{{ vagrant_local.vm.app_shared_folder.owner }}/.phpbrew/ -type f -wholename "*/php/php-{{ php.version }}*/bin/php"'
+  register: php_binary
+  failed_when: "php_binary.stdout == 'xx'"
+  ignore_errors: true
+
 - name: determine PHP extension folder
   become: yes
   shell: 'find /home/{{ vagrant_local.vm.app_shared_folder.owner }}/.phpbrew/ -type d -wholename "*/php/php-{{ php.version }}*/lib/php/extensions/*"'
@@ -15,5 +22,6 @@
 
 - name: set facts for phpbrew installation
   set_fact: >
+    php_binary="{{ php_binary.stdout }}"
     php_extension_dir="{{ php_extension_dir.stdout }}"
     php_extension_config_dir="{{ php_extension_config_dir.stdout }}"
