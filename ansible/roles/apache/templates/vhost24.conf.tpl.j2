@@ -8,17 +8,14 @@
 
     DocumentRoot {{ item.docroot }}
 
-    SetEnv CEP_CONTEXT local_sah
+    SetEnv CEP_CONTEXT dev
 
     <Directory "{{ item.docroot }}">
         AllowOverride All
         Options FollowSymlinks
         Require all granted
-
         RewriteEngine on
         RewriteBase {{ item.docroot }}
-
-        DirectoryIndex index.php
     </Directory>
 
 {% if item.proxypass is defined %}
@@ -30,6 +27,15 @@
 
     Header set Access-Control-Allow-Origin "*"
 
+    ErrorLog /var/log/apache2/dev_error.log
+    CustomLog /var/log/apache2/dev_access.log combined
+
+#    php_flag log_errors on
+#    php_value error_log /vol_data_00/home/s.hofmann/logs/cep-t3-sah/php_error.log
+
+#    ScriptAlias /php5-cgi /usr/lib/cgi-bin/php5.3.7-cgi
+#    Action application/x-httpd-php5 /php5-cgi
+#    AddHandler application/x-httpd-php5 .php .php5 .php4 .php3 .phtml
 </VirtualHost>
 
 {% if item.ssl is defined and item.ssl %}
@@ -43,25 +49,34 @@
 
     DocumentRoot {{ item.docroot }}
 
+    SetEnv CEP_CONTEXT dev
+
     <Directory "{{ item.docroot }}">
         AllowOverride All
         Options FollowSymlinks
         Require all granted
-
         RewriteEngine on
         RewriteBase {{ item.docroot }}
-
-        DirectoryIndex index.php
     </Directory>
 
 {% if item.proxypass is defined %}
     <Location {{ item.proxypass.path }}>
-        ProxyPass http://{{ item.proxypass.url }}
+        ProxyPass https://{{ item.proxypass.url }}
         Require all granted
     </Location>
 {% endif %}
 
     Header set Access-Control-Allow-Origin "*"
+
+    ErrorLog /var/log/apache2/dev_error.log
+    CustomLog /var/log/apache2/dev_ssl.log "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b" combined
+
+#    php_flag log_errors on
+#    php_value error_log /vol_data_00/home/s.hofmann/logs/cep-t3-sah/php_error.log
+
+#    ScriptAlias /php5-cgi /usr/lib/cgi-bin/php5.3.7-cgi
+#    Action application/x-httpd-php5 /php5-cgi
+#    AddHandler application/x-httpd-php5 .php .php5 .php4 .php3 .phtml
 
     SSLEngine On
     SSLCertificateFile /etc/apache2/ssl/server.crt
@@ -69,3 +84,4 @@
     SetEnvIf User-Agent ".*MSIE.*" nokeepalive ssl-unclean-shutdown
 </VirtualHost>
 {% endif %}
+
