@@ -69,7 +69,7 @@
     Header set Access-Control-Allow-Origin "*"
 
     ErrorLog /var/log/apache2/dev_error.log
-    CustomLog /var/log/apache2/dev_ssl.log "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b" combined
+    CustomLog /var/log/apache2/dev_ssl.log "%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \"%r\" %b"
 
 #    php_flag log_errors on
 #    php_value error_log /vol_data_00/home/s.hofmann/logs/cep-t3-sah/php_error.log
