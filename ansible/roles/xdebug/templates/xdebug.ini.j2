@@ -1,0 +1,5 @@
+; {{ ansible_managed }}
+zend_extension=xdebug.so
+xdebug.remote_enable=On
+xdebug.remote_host={{ php.xdebug.host|default(xdebug_ip_address.stdout, true) }}
+; priority=01
