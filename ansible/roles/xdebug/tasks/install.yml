@@ -9,6 +9,10 @@
   register: xdebug_ip_address
 
 - name: Place xdebug configuration
-  template: src=xdebug.ini dest=/etc/php5/mods-available/xdebug.ini
+  template: src=xdebug.ini.j2 dest=/etc/php5/mods-available/xdebug.ini
+  become: yes
+
+- name: Enable module
+  shell: php5enmod xdebug
   become: yes
   notify: restart apache
